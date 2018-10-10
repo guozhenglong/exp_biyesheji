@@ -1,3 +1,7 @@
+rosshutdown;
+clear;
+clc;
+close all;
 %% Send velocity comand and drive the uav to the target point. 
 global uav_num 
 uav_num = 3;
@@ -30,19 +34,33 @@ uav_destination=zeros(uav_num,4);
 % uav_destination(3,:)  = [-1.2,-1.3,1.0,0.0];
 % 
 
-uav_destination(2,:)  = [0.3,0.3,1.2,0.0];
-uav_destination(3,:)  = [1.0,3.0,1.2,0.0];
-uav_destination(1,:)  = [-1.2,-3.0,1.2,0.0];
+uav_destination(2,:)  = [-0.3,-0.3,1.2,0.0];
+uav_destination(1,:)  = [1.0,2.0,1.2,0.0];
+uav_destination(3,:)  = [-1.2,-3.0,1.2,0.0];
+
+uav_wp = cell(3,10);
+for cnt=1:10
+   if mod(cnt,2)==1
+        uav_wp{2,cnt}  = [-0.3,-0.3,1.2,0.0];
+        uav_wp{1,cnt}  = [1.0,2.0,1.2,0.0];
+        uav_wp{3,cnt}  = [-1.2,-3.0,1.2,0.0]; 
+   else
+        uav_wp{2,cnt}  = [0.3,0.3,1.2,0.0];
+        uav_wp{3,cnt}  = [1.0,2.0,1.2,0.0];
+        uav_wp{1,cnt}  = [-1.2,-3.0,1.2,0.0]; 
+   end
+end
 
 l = 0.1;
 rm = 0.2;
 ra = 1.2;
 e = 0.01;
-Vmax = 0.5;
-x_min = -3;
-x_max = 3;
-y_min = -3;
-y_max = 3;
+Vmax = 0.3;
+bound = 3.5;
+x_min = -1*bound;
+x_max = bound;
+y_min = -1*bound;
+y_max = 2;
 % p_xy = 0.6;
 % d_xy = 0.4;
 p_x = 0.6;
@@ -60,18 +78,21 @@ GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
 pause(2);
 debug_data = cell(3,10000);
 k=1;
-while (1)
+cnt = 1;
+while (cnt<11)
     position = navdata(:,1:3)';
     velocity = navdata(:,7:9)';
     AvoidanceCmd = getAvoidanceCmd(position, velocity,uav_num,l,rm,ra,e);
-    for i=1:uav_num
+    if (norm(navdata(1,1:3)-uav_wp{i,cnt}(1,1:3))>0.1 || abs(navdata(1,6)-uav_wp{1,cnt}(1,4))>0.1) && ...
+            (norm(navdata(2,1:3)-uav_wp{2,cnt}(1,1:3))>0.1 || abs(navdata(2,6)-uav_wp{2,cnt}(1,4))>0.1) && ...
+            (norm(navdata(3,1:3)-uav_wp{3,cnt}(1,1:3))>0.1 || abs(navdata(3,6)-uav_wp{3,cnt}(1,4))>0.1)
+        for i=1:uav_num
         %when the error of position and yaw is large than the threshold
-%         if(norm(navdata(i,1:3)-uav_destination(i,1:3))>0.1 || abs(navdata(i,6)-uav_destination(i,4))>0.1)    
             %Controller
             cmd = zeros(2,1);
-            cmd(1,1) = p_x*(uav_destination(i,1) - navdata(i,1)) + AvoidanceCmd(1,i) + GeoCmd(1,i);
-            cmd(2,1)  = p_y*(uav_destination(i,2) - navdata(i,2)) + AvoidanceCmd(2,i) + GeoCmd(2,i);
-            cmd_z  = p_z*(uav_destination(i,3) - navdata(i,3)) + AvoidanceCmd(3,i) + GeoCmd(3,i);
+            cmd(1,1) = p_x*(uav_wp{i,cnt}(1,1) - navdata(i,1)) + AvoidanceCmd(1,i) + GeoCmd(1,i);
+            cmd(2,1)  = p_y*(uav_wp{i,cnt}(1,2) - navdata(i,2)) + AvoidanceCmd(2,i) + GeoCmd(2,i);
+            cmd_z  = p_z*(uav_wp{i,cnt}(1,3) - navdata(i,3)) + AvoidanceCmd(3,i) + GeoCmd(3,i);
 %             cmd_x = p_x*(uav_destination(i,1) - navdata(i,1));
 %             cmd_y = p_y*(uav_destination(i,2) - navdata(i,2));
 %             cmd_z = p_z*(uav_destination(i,3) - navdata(i,3));
@@ -82,7 +103,7 @@ while (1)
             cmd_x = cmd(1,1);
             cmd_y = cmd(2,1);
            
-            cmd_yaw = p_yaw*(uav_destination(i,4) - navdata(i,6));
+            cmd_yaw = p_yaw*(uav_wp{i,cnt}(1,4)  - navdata(i,6));
             % send the velocity command.
             cmd_vel_send(i,cmd_x, cmd_y,cmd_z,cmd_yaw);  
             cmd_final = [cmd_x, cmd_y,cmd_z,cmd_yaw];
@@ -92,10 +113,13 @@ while (1)
             disp(GeoCmd(:,i))
             disp('AvoidanceCmd:=')
             disp(AvoidanceCmd(:,i))
-%         end
             debug_data{i,k}=[navdata(i,:),GeoCmd(:,i)',AvoidanceCmd(:,i)',cmd_final];
+            k=k+1;
+        end
+    else
+        cnt = cnt + 1;
     end
-    k=k+1;
+ 
     disp('send once command.')
     navdata = navdata_update(); % update the navigation data
     GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
