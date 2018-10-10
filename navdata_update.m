@@ -22,9 +22,9 @@ function navdata = navdata_update()
         navdata(i,4:6) = euler_RPY; 
 
         % linear velocity: vx vy vz
-        v_x = ros_sub_pub_name{i}{2}.LatestMessage.Point.X;
-        v_y = ros_sub_pub_name{i}{2}.LatestMessage.Point.Y;
-        v_z = ros_sub_pub_name{i}{2}.LatestMessage.Point.Z;
+        v_x = ros_sub_pub_name{i}{2}.LatestMessage.Pose.Position.X;
+        v_y = ros_sub_pub_name{i}{2}.LatestMessage.Pose.Position.Y;
+        v_z = ros_sub_pub_name{i}{2}.LatestMessage.Pose.Position.Z;
         navdata(i,7) = v_x;
         navdata(i,8) = v_y;
         navdata(i,9) = v_z;

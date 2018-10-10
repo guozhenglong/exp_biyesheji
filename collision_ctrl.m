@@ -5,7 +5,6 @@ uav_num = 3;
 initial_ros_matlab;  
 % definition of some variable for recieving navdata and sending command. 
 ROS_nodehandle;  
-
 % set the position and yaw of target point
 uav_destination=zeros(uav_num,4);
 % uav_destination(1,:)  = [0.2,0.3,3.0,0.0];
@@ -21,9 +20,9 @@ uav_destination=zeros(uav_num,4);
 % uav_destination(2,:)  = [-4.0,-5.0,3.0,0.0];
 % uav_destination(3,:)  = [5.0,5.0,3.0,0.0];
 
-uav_destination(1,:)  = [0.1,0.3,3.0,0.0];
-uav_destination(2,:)  = [4.0,5.0,3.0,0.0];
-uav_destination(3,:)  = [-5.0,-5.0,3.0,0.0];
+uav_destination(1,:)  = [0.1,0.3,1.0,0.0];
+uav_destination(2,:)  = [1.0,2.0,1.0,0.0];
+uav_destination(3,:)  = [-1.2,-1.3,1.0,0.0];
 
 
 l = 0.1;
@@ -49,6 +48,7 @@ p_yaw = 0.0;
 % pos_d = [x_d, y_d,z_d];
 navdata = navdata_update();  % x y z roll pitch yaw vx vy vz
 GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
+pause(2);
 while (1)
     position = navdata(:,1:3)';
     velocity = navdata(:,7:9)';
@@ -74,10 +74,16 @@ while (1)
             cmd_yaw = p_yaw*(uav_destination(i,4) - navdata(i,6));
             % send the velocity command.
             cmd_vel_send(i,cmd_x, cmd_y,cmd_z,cmd_yaw);  
+            disp('nacdata:=')
+            disp(navdata(i,:))
+            disp('GeoCmd:=')
+            disp(GeoCmd(:,i))
+            disp('AvoidanceCmd:=')
+            disp(AvoidanceCmd(:,i))
 %         end
     end
     disp('send once command.')
     navdata = navdata_update(); % update the navigation data
-    disp(navdata)
     GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
+
 end
