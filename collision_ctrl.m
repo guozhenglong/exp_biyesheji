@@ -6,9 +6,9 @@ initial_ros_matlab;
 % definition of some variable for recieving navdata and sending command. 
 ROS_nodehandle;  
 ardrone_control;
-prompt = 'Start the flight task.\n Are the bebops flying?  y/n';
+prompt = 'Start the flight task.Are the bebops flying?  1:yes;0:no. please input 1 or 0 ?';
 x = input(prompt);
-if x=='y'
+if x==1
     
 % set the position and yaw of target point
 uav_destination=zeros(uav_num,4);
@@ -25,13 +25,17 @@ uav_destination=zeros(uav_num,4);
 % uav_destination(2,:)  = [-4.0,-5.0,3.0,0.0];
 % uav_destination(3,:)  = [5.0,5.0,3.0,0.0];
 
-uav_destination(1,:)  = [0.1,0.3,1.0,0.0];
-uav_destination(2,:)  = [1.0,2.0,1.0,0.0];
-uav_destination(3,:)  = [-1.2,-1.3,1.0,0.0];
+% uav_destination(1,:)  = [0.1,0.3,1.0,0.0];
+% uav_destination(2,:)  = [1.0,2.0,1.0,0.0];
+% uav_destination(3,:)  = [-1.2,-1.3,1.0,0.0];
+% 
 
+uav_destination(2,:)  = [0.3,0.3,1.2,0.0];
+uav_destination(3,:)  = [1.0,3.0,1.2,0.0];
+uav_destination(1,:)  = [-1.2,-3.0,1.2,0.0];
 
 l = 0.1;
-rm = 0.3;
+rm = 0.2;
 ra = 1.2;
 e = 0.01;
 Vmax = 0.5;
@@ -54,6 +58,8 @@ p_yaw = 0.0;
 navdata = navdata_update();  % x y z roll pitch yaw vx vy vz
 GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
 pause(2);
+debug_data = cell(3,10000);
+k=1;
 while (1)
     position = navdata(:,1:3)';
     velocity = navdata(:,7:9)';
@@ -79,6 +85,7 @@ while (1)
             cmd_yaw = p_yaw*(uav_destination(i,4) - navdata(i,6));
             % send the velocity command.
             cmd_vel_send(i,cmd_x, cmd_y,cmd_z,cmd_yaw);  
+            cmd_final = [cmd_x, cmd_y,cmd_z,cmd_yaw];
             disp('nacdata:=')
             disp(navdata(i,:))
             disp('GeoCmd:=')
@@ -86,7 +93,9 @@ while (1)
             disp('AvoidanceCmd:=')
             disp(AvoidanceCmd(:,i))
 %         end
+            debug_data{i,k}=[navdata(i,:),GeoCmd(:,i)',AvoidanceCmd(:,i)',cmd_final];
     end
+    k=k+1;
     disp('send once command.')
     navdata = navdata_update(); % update the navigation data
     GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);

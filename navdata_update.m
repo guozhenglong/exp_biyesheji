@@ -11,7 +11,7 @@ function navdata = navdata_update()
         p_z = ros_sub_pub_name{i}{1}.LatestMessage.Pose.Position.Z;
         navdata(i,1) = p_x;
         navdata(i,2) = p_y;
-        navdata(i,3) = p_z;
+        navdata(i,3) = - p_z;
 
         % attitude (quaternion): first get quaternion, second transform to euler angle.
         q_x = ros_sub_pub_name{i}{1}.LatestMessage.Pose.Orientation.X;
@@ -20,6 +20,7 @@ function navdata = navdata_update()
         q_w = ros_sub_pub_name{i}{1}.LatestMessage.Pose.Orientation.W;
         euler_RPY = quat2eul([q_x,q_y,q_z,q_w]);  % transform to euler angle.
         navdata(i,4:6) = euler_RPY; 
+        navdata(i,6) = - navdata(i,6);
 
         % linear velocity: vx vy vz
         v_x = ros_sub_pub_name{i}{2}.LatestMessage.Pose.Position.X;
@@ -27,7 +28,7 @@ function navdata = navdata_update()
         v_z = ros_sub_pub_name{i}{2}.LatestMessage.Pose.Position.Z;
         navdata(i,7) = v_x;
         navdata(i,8) = v_y;
-        navdata(i,9) = v_z;
+        navdata(i,9) = -v_z;
 
     end
 
