@@ -5,6 +5,11 @@ uav_num = 3;
 initial_ros_matlab;  
 % definition of some variable for recieving navdata and sending command. 
 ROS_nodehandle;  
+ardrone_control;
+prompt = 'Start the flight task.\n Are the bebops flying?  y/n';
+x = input(prompt);
+if x=='y'
+    
 % set the position and yaw of target point
 uav_destination=zeros(uav_num,4);
 % uav_destination(1,:)  = [0.2,0.3,3.0,0.0];
@@ -86,4 +91,5 @@ while (1)
     navdata = navdata_update(); % update the navigation data
     GeoCmd = getGeoCmd(navdata,uav_num,l,rm,x_min,x_max,y_min,y_max);
 
+end
 end
