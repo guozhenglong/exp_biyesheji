@@ -113,9 +113,9 @@ while (cnt<11)
             disp(GeoCmd(:,i))
             disp('AvoidanceCmd:=')
             disp(AvoidanceCmd(:,i))
-            debug_data{i,k}=[navdata(i,:),GeoCmd(:,i)',AvoidanceCmd(:,i)',cmd_final];
-            k=k+1;
+            debug_data{i,k}=[navdata(i,:),GeoCmd(:,i)',AvoidanceCmd(:,i)',cmd_final];    
         end
+        k=k+1;
     else
         cnt = cnt + 1;
     end
